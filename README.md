@@ -1,4 +1,4 @@
-🍬 US Candy Sales: End-to-End SQL Data Engineering & Analytics
+🍬US CANDY SALES: DATA ENGINEERING & ANALYSIS
 
 
 📋 Project Overview
