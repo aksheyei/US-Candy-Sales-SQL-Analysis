@@ -1,41 +1,71 @@
-# 🍬 US-Candy-Sales-SQL-Analysis
-
-🎯 Overview
-
-An end-to-end SQL project focused on cleaning transactional candy sales data and performing advanced analytics to track regional performance and profitability across the US and Canada.
-
-🛠️ Key SQL Features
-Data Cleaning: Standardized inconsistent DATE formats using CASE and STR_TO_DATE.
-
-Advanced Analytics: Leveraged CTEs and Window Functions (NTILE) to rank quarterly sales performance.
-
-KPI Dashboard: Consolidated core business metrics (Revenue, Profit, Units, Reach) into a single report using UNION ALL.
+🍬 US Candy Sales: End-to-End SQL Data Engineering & Analytics
 
 
+📋 Project Overview
+This project demonstrates a complete data workflow: from ingesting "messy" raw CSV data to performing advanced analytical queries in SQL. The analysis focuses on a candy distributor's sales performance across the US and Canada, identifying high-margin products, standardizing date formats for time-series analysis, and ranking regional performance.
 
-📂 Project Structure
-Candy_Sales.csv: Transactional fact table.
+🏗️ Data Architecture
+The project utilizes a relational database structure with the following entities:
 
-Candy_Products.csv: Product dimensions and cost data.
+candy_sales: The core fact table containing over 15 columns including sales, profit, and cost metrics.
 
-Candy_Factories.csv: Manufacturing location data.
+Candy_Products: A dimension table for product attributes and factory sourcing.
 
-Candy_Targets.csv: Sales benchmarks by division.
+Candy_Factories: Geospatial data for manufacturing sites.
 
-candy_sql_script.sql: The full analytical script.
+Candy_Targets: Performance benchmarks for the Chocolate, Sugar, and Other divisions.
 
-🚀 Quick Insights
-Analyzed sales across 4 major regions (Atlantic, Gulf, Interior, Pacific).
+🛠️ Technical Deep Dive
+1. Advanced ETL & Data Standardization
+One of the primary challenges was the inconsistent date formats in the raw source files. I developed a conditional update script using STR_TO_DATE and CASE logic to transform mixed formats into a standardized DATE type, enabling accurate time-period analysis.
 
-Identified high-margin products including Wonka Bar - Triple Dazzle Caramel.
+SQL
+UPDATE candy_sales 
+SET order_date = CASE 
+    WHEN order_date LIKE '____-__-__' THEN order_date
+    WHEN order_date LIKE '__-__-____' THEN STR_TO_DATE(order_date, '%d-%m-%Y')
+    ELSE order_date 
+END;
+2. Quarterly Performance Partitioning
+Using Common Table Expressions (CTEs) and Window Functions, I ranked monthly sales totals into quartiles. This allows the business to identify which months are consistently in the top 25% of performance for each division.
 
-Calculated total metrics across multiple countries and divisions.
+SQL
+WITH monthly AS (
+    SELECT division, month(order_date) as month_num, sum(sales) as total_sales
+    FROM candy_sales
+    GROUP BY division, month_num
+)
+SELECT division, total_sales,
+       NTILE(4) OVER (PARTITION BY division ORDER BY total_sales) as sales_quartile
+FROM monthly;
+3. Comprehensive Executive Reporting
+I utilized UNION ALL to create a consolidated KPI report. This single view provides an instant snapshot of:
 
-Author: [Your Name]
+Total Revenue & Gross Profit
 
-Which one should you choose?
-Choose the Short version (this one) if you think your audience wants to see the code immediately.
+Operational Scale (Total unique orders and regions)
 
-Choose the previous version if you are applying for a job and want to show off your communication skills.
+Product Breadth (Distinct product counts across US/Canada)
 
-Would you like me to help you write a "Business Insights" summary to add to this, or are you ready to upload?
+📈 Key Business Insights
+Product Performance: Identified the Wonka Bar - Triple Dazzle Caramel and Scrumdiddlyumptious as significant revenue drivers.
+
+Regional Footprint: The analysis spans 4 key regions (Atlantic, Gulf, Interior, Pacific) across two countries.
+
+Factory Efficiency: Mapped production from sites like Lot's O' Nuts and Wicked Choccy's to specific product lines.
+
+📂 Repository Structure
+/data: Contains raw .csv data files.
+
+/scripts: Includes candy_sql_script.sql with full cleaning and analysis code.
+
+README.md: Project documentation and insights.
+
+🚀 How to Run
+Import the CSV files into your SQL environment (MySQL preferred).
+
+Run the candy_sql_script.sql to perform the data cleaning.
+
+Execute the analytical queries to generate the "Key Metrics Report."
+
+Author: AKSHAY R  Project Type: SQL Portfolio Project 
